@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="album py-5 bg-body-tertiary">
+    <div class="container">
+        <h2>Достопримечательности в городе {{ city.city_name }}</h2>
+
+        <form method="GET" action="{{ url_for('attractions', city_id=city.city_id) }}" class="mb-4">
+            <select name="attraction_type" class="form-select" onchange="this.form.submit()">
+                <option value="">Все</option>
+                <option value="Храм, церковь, собор">Храм, церковь, собор</option>
+                <option value="Парк">Парк</option>
+                <option value="Музей">Музей</option>
+                <option value="Памятник">Памятник</option>
+            </select>
+        </form>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            {% for attraction in attractions %}
+            <div class="col">
+                <div class="card shadow-sm">
+                    <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top" alt="{{ attraction.attraction_name }}">
+                    <div class="card-body">
+                        <p class="card-text">{{ attraction.attraction_name }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group">
+                                <a href="{{ url_for('attraction_detail', attraction_id=attraction.attraction_id) }}" class="btn btn-sm btn-outline-secondary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

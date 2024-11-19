@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Золотое кольцо России
+{% endblock %}
+
+{% block content %}
+<h2>{{ city.city_name }}</h2>
+<img src="{{ url_for('static', filename='img/' + city.photo) }}" class="card-img-top img-fluid" alt="{{ city.city_name }}">
+<div class="icons-container">
+    <div class="flex justify-around items-center mb-6 text-gray-600">
+        <div class="icon-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <a href="{{ url_for('attractions', city_id=city.city_id) }}" class="text-link hover:underline">
+                что посмотреть
+            </a>
+        </div>
+        <div class="icon-item">
+            <i class="fas fa-star"></i>
+            <a href="#" class="text-link hover:underline">
+                куда сходить
+            </a>
+        </div>
+        <div class="icon-item">
+            <i class="fas fa-hotel"></i>
+            <a href="#" class="text-link hover:underline">
+                где остановиться
+            </a>
+        </div>
+    </div>
+</div>
+<div class="about">{{ city.description }}</div>
+<div class="d-flex justify-content-between align-items-center">
+    <div class="btn-group">
+        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Назад</a>
+    </div>
+</div>
+{% endblock %}

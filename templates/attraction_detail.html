@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Золотое кольцо России
+{% endblock %}
+
+{% block content %}
+<h2>{{ attraction.attraction_name }}</h2>
+    <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top img-fluid"  alt="{{ attraction.attraction_name }}">
+    <p class="about">{{ attraction.description }}</p>
+
+    <form action="{{ url_for('add_to_favorites', attraction_id=attraction.attraction_id) }}" method="POST">
+        <button type="submit" class="btn btn-primary mt-3">Добавить в избранное ❤️</button>
+    </form>
+    
+    {% if message %}
+        <div class="alert alert-success mt-3">
+            {{ message }}
+        </div>
+    {% endif %}  
+
+    {% if current_user.is_authenticated %}
+    <form action="{{ url_for('leave_feedback', attraction_id=attraction.id) }}" method="POST">
+        <button type="submit">Оставить отзыв</button>
+    </form>
+    {% endif %}
+
+    <h3>Отзывы:</h3>
+{% for feedback in attraction.feedbacks if feedback.approved %}
+    <div>
+        <p><strong>{{ feedback.user.username }}</strong> (Оценка: {{ feedback.evaluation }})</p>
+        <p>{{ feedback.comment }}</p>
+    </div>
+{% endfor %}
+
+
+
+{% endblock %}

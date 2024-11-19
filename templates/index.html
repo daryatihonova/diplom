@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Золотое кольцо России
+{% endblock %}
+
+{% block content %}
+<h2>Золотое кольцо России</h2>
+
+
+
+<div class="album py-5 bg-body-tertiary">
+    <div class="container">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            {% for el in city %}
+            <div class="col">
+                <div class="card shadow-sm">
+                    <img src="{{ url_for('static', filename='img/' + el.photo) }}" class="card-img-top" alt="{{ el.city_name }}">
+                    <div class="card-body">
+                        <p class="card-text">{{el.city_name}}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group">
+                                <a href="{{ url_for('city_detail', city_id=el.city_id) }}" class="btn btn-sm btn-outline-secondary">Подробнее</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

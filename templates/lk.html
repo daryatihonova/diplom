@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}
+Личный кабинет
+{% endblock %}
+
+{% block content %}
+<h2>Добро пожаловать, {{ name }}!</h2>
+<h4>Ваши избранные достопримечательности</h4>
+<div class="album py-5 bg-body-tertiary">
+<div class="container">
+ <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+{% for attraction in favorites %}
+<div class="col">
+    <div class="card shadow-sm">
+        <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top" alt="{{ attraction.attraction_name }}">
+        <div class="card-body">
+            <p class="card-text">{{ attraction.attraction_name }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+</div>
+</div>
+{% if not favorites %}
+    <p>У вас нет избранных достопримечательностей.</p>
+{% endif %}
+<a href="{{ url_for('logout') }}">Выйти</a>
+{% endblock %}

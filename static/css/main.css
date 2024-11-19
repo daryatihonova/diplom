@@ -1,0 +1,97 @@
+header{
+    position: sticky;
+    top: 0;
+    padding: 10px;
+    z-index: 1000;
+    background: #fff;
+    -webkit-box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15) ;
+}
+
+.header__img{
+    height: 48px;
+    width: 48px;
+}
+
+.nav-link {
+    padding: 0.2rem 0.5rem; 
+  }
+  
+  .nav li {
+    padding-right: 0.5px; 
+  }
+  
+  .nav li:last-child {
+    padding-right: 0;
+  }
+  
+  
+  
+  
+  
+
+h2 {
+    text-align: center;
+    margin-top: 0;
+  }
+
+
+  .card {
+    height: 100%; /* Заставляет карточки занимать одинаковую высоту */
+}
+.card-img-top {
+    width: 100%; /* Заставляет изображение занимать всю ширину карточки */
+    height: 200px; /* Фиксированная высота для изображений */
+    object-fit: cover; /* Обрезает изображение, сохраняя его пропорции */
+}
+
+
+
+/*фото города на странице*/
+.img-fluid {
+    margin: 10px auto 20px;
+    display: block;
+    max-width: 80%; 
+    height: auto; 
+   
+}
+
+
+/*иконки перехода в городах*/
+.icons-container {
+    display: flex;
+    justify-content: center; /* Центрирование по горизонтали */
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.icon-item i {
+    font-size: 1.5rem; 
+}
+
+.flex {
+    display: flex;
+    flex-direction: row; 
+    margin-top: 20px; 
+    margin-bottom: 20px; 
+}
+
+.icon-item {
+    display: inline-flex; 
+    flex-direction: column;
+    text-align: center; 
+    margin: 0 1rem; 
+}
+
+/*описание города*/
+.about{
+    margin-top: 0;
+    text-align: left;
+    padding: 20px;
+}
+
+
+form {
+    width: 300px; 
+    margin: 0 auto;
+}

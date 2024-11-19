@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Золотое кольцо России
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mt-5">Вход в личный кабинет</h2>
+
+    <form action="{{ url_for('login') }}" method="POST" class="mt-4">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль:</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+    
+</div>
+{% endblock %}
