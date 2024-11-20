@@ -9,30 +9,42 @@
     <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top img-fluid"  alt="{{ attraction.attraction_name }}">
     <p class="about">{{ attraction.description }}</p>
 
+    
     <form action="{{ url_for('add_to_favorites', attraction_id=attraction.attraction_id) }}" method="POST">
         <button type="submit" class="btn btn-primary mt-3">Добавить в избранное ❤️</button>
     </form>
     
-    {% if message %}
-        <div class="alert alert-success mt-3">
-            {{ message }}
-        </div>
-    {% endif %}  
+    
 
-    {% if current_user.is_authenticated %}
-    <form action="{{ url_for('leave_feedback', attraction_id=attraction.id) }}" method="POST">
-        <button type="submit">Оставить отзыв</button>
-    </form>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
+{% endwith %}
 
-    <h3>Отзывы:</h3>
-{% for feedback in attraction.feedbacks if feedback.approved %}
-    <div>
-        <p><strong>{{ feedback.user.username }}</strong> (Оценка: {{ feedback.evaluation }})</p>
-        <p>{{ feedback.comment }}</p>
+    <form method="post" class="comment-container">
+        <input type="text" name="comment" placeholder="Оставить комментарий" class="comment-form"><br>
+        <button class="btn btn-success" type="submit" >Отправить</button>
+    </form>
+
+
+    
+    
+<div class="comments-section">
+    <div >
+        <p style="font-size: 20px;" >Комментариев: {{ comments|length }}</p>
     </div>
-{% endfor %}
-
+    {% for feedback, username in comments %}
+      <div class="comment">
+        <div class="comment-username">{{ username }}</div>
+        <div class="comment-text">{{ feedback.comment }}</div>
+      </div>
+    {% endfor %}
+  </div>
 
 
 {% endblock %}

@@ -28,5 +28,25 @@
 {% if not favorites %}
     <p>У вас нет избранных достопримечательностей.</p>
 {% endif %}
+
+
+<h4>Ваши комментарии</h4>
+<div class="comments-section">
+    {% if user_comments %}
+    {% for comment in user_comments %}
+    <div class="comment">
+      <div class="comment-username">{{ comment.attraction_name }}</div>
+      <div class="comment-text">{{ comment.text }} </div>
+    </div>
+  {% endfor %}
+    {% else %}
+        <p>Вы еще не оставили комментариев.</p>
+    {% endif %}
+</div>
+
+
+
+
+
 <a href="{{ url_for('logout') }}">Выйти</a>
 {% endblock %}

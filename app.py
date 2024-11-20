@@ -57,12 +57,10 @@ class Event(db.Model):
 
 class Feedback(db.Model):
     feedback_id = db.Column(db.Integer, primary_key=True)
-    evaluation = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     attraction_id = db.Column(db.Integer, db.ForeignKey('attraction.attraction_id'), nullable=False)
-    approved = db.Column(db.Boolean, default=False)  # Поле для отслеживания состояния модерации
-
+    
 @app.context_processor
 def inject_cities():
     cities = City.query.all()
@@ -92,10 +90,38 @@ def attractions(city_id):
     return render_template('attraction.html', attractions=attractions, city=city)
 
 
-@app.route("/attraction_detail/<int:attraction_id>")
+@app.route("/attraction_detail/<int:attraction_id>", methods=['POST', 'GET'])
 def attraction_detail(attraction_id):
-    attraction = Attraction.query.get(attraction_id) 
-    return render_template('attraction_detail.html', attraction=attraction)
+    attraction = Attraction.query.get(attraction_id)
+    
+    if request.method == 'POST':
+        # Проверяем, что пользователь авторизован
+        if not current_user.is_authenticated:
+            flash('Вы должны быть авторизованы для добавления комментария.', 'warning')
+            return redirect(f'/attraction_detail/{attraction_id}')  # Перенаправляем обратно на страницу аттракциона
+
+        comment = request.form['comment']
+        
+        # Проверяем, что комментарий не пустой
+        if comment:
+            feedback = Feedback(comment=comment, user_id=current_user.user_id, attraction_id=attraction_id)
+
+            try:
+                db.session.add(feedback)
+                db.session.commit()
+                flash('Комментарий успешно добавлен!', 'success')
+                return redirect(f'/attraction_detail/{attraction_id}')  # Перенаправляем обратно на страницу аттракциона
+            except Exception as e:
+                db.session.rollback()  # Откат транзакции в случае ошибки
+                flash('При добавлении комментария произошла ошибка: {}'.format(str(e)), 'danger')
+        else:
+            flash('Комментарий не может быть пустым!', 'warning')
+
+     # Получаем все комментарии вместе с именами пользователей
+    comments = db.session.query(Feedback, User.name).join(User).filter(Feedback.attraction_id == attraction_id).all()
+    
+    return render_template('attraction_detail.html', attraction=attraction, comments=comments)
+
 
 
 
@@ -146,7 +172,22 @@ def lk():
         if attraction:
             favorite_attractions.append(attraction)
  
-    return render_template('lk.html', name=current_user.name, favorites=favorite_attractions)
+    user_comments = Feedback.query.filter_by(user_id=current_user.user_id).all()  # Получаем все комментарии пользователя
+
+    # Преобразуем комментарии в удобный формат для передачи в шаблон
+    comments_list = []
+    for comment in user_comments:
+        comments_list.append({
+            'attraction_name': get_attraction_name(comment.attraction_id),  # Функция для получения названия достопримечательности
+            'text': comment.comment,
+           
+        })
+
+    return render_template('lk.html', name=current_user.name, favorites=favorite_attractions, user_comments=comments_list)
+
+def get_attraction_name(attraction_id):
+    attraction = Attraction.query.get(attraction_id)
+    return attraction.attraction_name if attraction else "Неизвестно"
 
 
 @app.route("/logout")
@@ -208,7 +249,7 @@ def admin_page():
     return render_template('admin_page.html')  
 
 
-
+ 
 
 
 

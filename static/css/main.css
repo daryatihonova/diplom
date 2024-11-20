@@ -95,3 +95,57 @@ form {
     width: 300px; 
     margin: 0 auto;
 }
+
+
+
+.comment-container {
+    max-width: 600px; /* Максимальная ширина контейнера */
+    width: 100%; /* Ширина 100% для адаптивности */
+    margin: 50px auto; /* Центрирование контейнера с отступами сверху и снизу */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.comment-form {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    resize: vertical;
+    height: 90px;
+}
+
+
+
+   
+  
+.comments-section {
+    display: flex; /* Используем flexbox для центрирования */
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: flex-start; /* Выравнивание элементов по верхней части */
+    flex-direction: column; /* Расположение комментариев вертикально */
+    max-width: 600px; /* Максимальная ширина секции комментариев */
+    margin: 20px auto; /* Центрирование по горизонтали с отступами сверху и снизу */
+    padding: 20px; /* Добавление внутреннего отступа для улучшения визуального восприятия */
+    border: 1px solid #ddd; /* Легкая рамка вокруг секции комментариев */
+    border-radius: 5px; /* Закругленные углы для более приятного внешнего вида */
+    background-color: #f9f9f9; /* Фоновый цвет */
+}
+
+.comment {
+    border-bottom: 1px solid #ccc; /* Добавляем разделитель между комментариями */
+    padding: 10px 0; /* Отступы для комментария */
+}
+
+.comment:last-child {
+    border-bottom: none; /* Убираем разделитель у последнего комментария */
+}
+
+.comment-username {
+    font-weight: bold; /* Жирный шрифт для имени пользователя */
+    margin-bottom: 5px; /* Отступ снизу для имени пользователя */
+}
+  
