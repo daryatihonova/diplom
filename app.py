@@ -1,4 +1,5 @@
 import os
+import re
 from flask import Flask, render_template, request, redirect, url_for,  flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -76,7 +77,8 @@ def index():
 @app.route("/city_detail/<int:city_id>")
 def city_detail(city_id):
     city = City.query.get(city_id)
-    return render_template('city_detail.html', city=city)
+    city_slug = transliterate(city.city_name) 
+    return render_template('city_detail.html', city=city, city_slug=city_slug)
 
 
 @app.route("/attractions/<int:city_id>", methods=['GET'])
@@ -250,6 +252,46 @@ def admin_page():
 
 
  
+@app.route("/delete_feedback/<int:feedback_id>", methods=['POST'])
+@login_required  # Убедитесь, что пользователь авторизован
+def delete_feedback(feedback_id):
+    # Проверяем, является ли текущий пользователь администратором
+    if current_user.email != 'admin@mail.ru':
+        flash('У вас нет прав для удаления комментариев.', 'danger')
+        return redirect(request.referrer)  # Возвращаем на предыдущую страницу
+
+    feedback = Feedback.query.get(feedback_id)
+    
+    if feedback:
+        try:
+            db.session.delete(feedback)
+            db.session.commit()
+            flash('Комментарий успешно удален!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('При удалении комментария произошла ошибка: {}'.format(str(e)), 'danger')
+    else:
+        flash('Комментарий не найден.', 'warning')
+
+    return redirect(request.referrer)  # Возвращаем на предыдущую страницу
+
+
+
+def transliterate(text):
+    translit_dict = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 
+        'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    }
+    
+    # Заменяем буквы и удаляем недопустимые символы
+    result = ''.join(translit_dict.get(char, char) for char in text.lower())
+    result = re.sub(r'[^a-z0-9-]', '-', result)  # Заменяем недопустимые символы на '-'
+    result = re.sub(r'-+', '-', result)  # Убираем дублирующиеся '-'
+    return result.strip('-')  # Убираем '-' в начале и конце
+
 
 
 

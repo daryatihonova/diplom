@@ -6,7 +6,12 @@
 
 {% block content %}
 <h2>{{ attraction.attraction_name }}</h2>
-    <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top img-fluid"  alt="{{ attraction.attraction_name }}">
+    <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top img-fluid"  alt="{{ attraction.attraction_name }}" >
+    
+    
+    <div id="map" style="width: 600px; height: 400px"></div>
+    
+    
     <p class="about">{{ attraction.description }}</p>
 
     
@@ -34,17 +39,23 @@
 
     
     
-<div class="comments-section">
-    <div >
-        <p style="font-size: 20px;" >Комментариев: {{ comments|length }}</p>
+    <div class="comments-section">
+        <div>
+            <p style="font-size: 20px;">Комментариев: {{ comments|length }}</p>
+        </div>
+        {% for feedback, username in comments %}
+          <div class="comment">
+            <div class="comment-username">{{ username }}</div>
+            <div class="comment-text">{{ feedback.comment }}</div>
+            {% if current_user.is_authenticated and current_user.email == 'admin@mail.ru' %}
+              <form action="{{ url_for('delete_feedback', feedback_id=feedback.feedback_id) }}" method="POST" style="display:inline;">
+                  <button type="submit" class="btn btn-danger">Удалить</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
     </div>
-    {% for feedback, username in comments %}
-      <div class="comment">
-        <div class="comment-username">{{ username }}</div>
-        <div class="comment-text">{{ feedback.comment }}</div>
-      </div>
-    {% endfor %}
-  </div>
+    
 
 
 {% endblock %}
