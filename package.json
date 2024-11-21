@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@yandex/ymaps3-default-ui-theme": "^0.0.16"
+  }
+}
