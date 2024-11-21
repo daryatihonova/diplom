@@ -2,7 +2,7 @@ initMap();
 
 async function initMap() {
     // Промис `ymaps3.ready` будет зарезолвлен, когда загрузятся все компоненты основного модуля API
-    await ymaps3.ready();
+    await ymaps3.ready;
 
     const {YMap, YMapDefaultSchemeLayer} = ymaps3;
 
@@ -26,5 +26,3 @@ async function initMap() {
     // Добавляем слой для отображения схематической карты
     map.addChild(new YMapDefaultSchemeLayer());
 }
-
-
