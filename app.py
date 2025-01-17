@@ -101,7 +101,7 @@ def attraction_detail(attraction_id):
         # Проверяем, что пользователь авторизован
         if not current_user.is_authenticated:
             flash('Вы должны быть авторизованы для добавления комментария.', 'warning')
-            return redirect(f'/attraction_detail/{attraction_id}')  # Перенаправляем обратно на страницу аттракциона
+            return redirect(f'/attraction_detail/{attraction_id}') 
 
         comment = request.form['comment']
         
@@ -113,9 +113,9 @@ def attraction_detail(attraction_id):
                 db.session.add(feedback)
                 db.session.commit()
                 flash('Комментарий успешно добавлен!', 'success')
-                return redirect(f'/attraction_detail/{attraction_id}')  # Перенаправляем обратно на страницу аттракциона
+                return redirect(f'/attraction_detail/{attraction_id}')  
             except Exception as e:
-                db.session.rollback()  # Откат транзакции в случае ошибки
+                db.session.rollback()  
                 flash('При добавлении комментария произошла ошибка: {}'.format(str(e)), 'danger')
         else:
             flash('Комментарий не может быть пустым!', 'warning')
@@ -138,13 +138,10 @@ def login():
     if request.method == "POST":
         email = request.form['email']
         password = request.form['password']
-         # Проверка на админские учетные данные
+         # Проверка на администратора
         if email == 'admin@mail.ru' and password == 'admin':
-            # Здесь можно создать или получить объект администратора
-            # Например, если у вас есть администратор в базе данных
             admin_user = User.query.filter_by(email=email).first()
             if not admin_user:
-                # Если администратор не существует, можно создать его (если необходимо)
                 admin_user = User(name='Admin', email=email, password=bcrypt.generate_password_hash(password).decode('utf-8'))
                 db.session.add(admin_user)
                 db.session.commit()
@@ -152,7 +149,7 @@ def login():
             login_user(admin_user)
             return redirect(url_for('admin_page'))  
 
-        # Стандартная проверка пользователя в базе данных
+        # Проверка пользователя в базе данных
         user = User.query.filter_by(email=email).first()
         
         if user and bcrypt.check_password_hash(user.password, password):
@@ -168,7 +165,6 @@ def login():
 @login_required
 def lk():
     favorites = Favourite.query.filter_by(user_id=current_user.user_id).all()
-    # Получите и присоедините данные о достопримечательностях к списку избранного
     favorite_attractions = []
     for favorite in favorites:
         attraction = Attraction.query.get(favorite.attraction_id)
@@ -177,7 +173,7 @@ def lk():
  
     user_comments = Feedback.query.filter_by(user_id=current_user.user_id).all()  # Получаем все комментарии пользователя
 
-    # Преобразуем комментарии в удобный формат для передачи в шаблон
+
     comments_list = []
     for comment in user_comments:
         comments_list.append({
@@ -254,9 +250,8 @@ def admin_page():
 
  
 @app.route("/delete_feedback/<int:feedback_id>", methods=['POST'])
-@login_required  # Убедитесь, что пользователь авторизован
+@login_required  
 def delete_feedback(feedback_id):
-    # Проверяем, является ли текущий пользователь администратором
     if current_user.email != 'admin@mail.ru':
         flash('У вас нет прав для удаления комментариев.', 'danger')
         return redirect(request.referrer)  # Возвращаем на предыдущую страницу
