@@ -9,8 +9,23 @@
     <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top img-fluid"  alt="{{ attraction.attraction_name }}" >
     
     
-    <div id="map" style="width: 600px; height: 400px"></div>
-    
+    <div id="map" style="width:500px; height:400px"></div>
+    <script type="text/javascript">
+        var map;
+  
+        DG.then(function () {
+            // Используем parseFloat для преобразования Jinja2-переменных в числа
+            var latitude = parseFloat("{{ coordinates.latitude }}");
+            var longitude = parseFloat("{{ coordinates.longitude }}");
+  
+            map = DG.map('map', {
+                center: [latitude, longitude], // Используем числовые значения
+                zoom: 13
+            });
+  
+            DG.marker([latitude, longitude]).addTo(map).bindPopup('{{ attraction.attraction_name}}');
+        });
+    </script>
     
     <p class="about">{{ attraction.description }}</p>
 

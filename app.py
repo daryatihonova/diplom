@@ -42,6 +42,8 @@ class Attraction(db.Model):
     description = db.Column(db.Text, nullable=False)
     attraction_type = db.Column(db.String(80), nullable=False)
     city_id = db.Column(db.Integer, db.ForeignKey('city.city_id'), nullable=False)
+    latitude = db.Column(db.Float, nullable=True)  # Широта
+    longitude = db.Column(db.Float, nullable=True) # Долгота
 
 class Favourite(db.Model):
     favourite_id = db.Column(db.Integer, primary_key=True)
@@ -123,7 +125,11 @@ def attraction_detail(attraction_id):
      # Получаем все комментарии вместе с именами пользователей
     comments = db.session.query(Feedback, User.name).join(User).filter(Feedback.attraction_id == attraction_id).all()
     
-    return render_template('attraction_detail.html', attraction=attraction, comments=comments)
+    # Передача координат в формате JSON
+    coordinates = {'latitude': attraction.latitude, 'longitude': attraction.longitude}
+    
+    return render_template('attraction_detail.html', attraction=attraction, comments=comments, coordinates=coordinates)
+
 
 
 
