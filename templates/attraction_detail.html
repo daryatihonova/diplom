@@ -14,12 +14,12 @@
         var map;
   
         DG.then(function () {
-            // Используем parseFloat для преобразования Jinja2-переменных в числа
+            
             var latitude = parseFloat("{{ coordinates.latitude }}");
             var longitude = parseFloat("{{ coordinates.longitude }}");
   
             map = DG.map('map', {
-                center: [latitude, longitude], // Используем числовые значения
+                center: [latitude, longitude], 
                 zoom: 13
             });
   

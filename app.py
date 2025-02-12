@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
+from flask_mail import Mail, Message
 
 
 
@@ -17,7 +18,15 @@ login_manager = LoginManager(app)
 login_manager.login_view = "login"
 migrate = Migrate(app, db)
 
+app.config['MAIL_SERVER'] = 'smtp.mail.ru'  
+app.config['MAIL_PORT'] = 465 
+app.config['MAIL_USE_TLS'] = False  
+app.config['MAIL_USE_SSL'] = True   
+app.config['MAIL_USERNAME'] = 'forsitediplom@internet.ru'  
+app.config['MAIL_PASSWORD'] = 'e6RrNbjtDrfBCYdtFsLF'  
+app.config['MAIL_DEFAULT_SENDER'] = 'forsitediplom@internet.ru' 
 
+mail = Mail(app)
 
 
 class User(UserMixin, db.Model):
@@ -211,12 +220,17 @@ def register():
         password = request.form['password']
         password2 = request.form['password2']
 
-        if len(name) > 4 and len(email) > 4 and len(password) > 4 and password == password2:
+        if len(name) > 0 and len(email) > 4 and len(password) > 4 and password == password2:
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
             new_user = User(name=name, email=email, password=hashed_password)
             db.session.add(new_user)
             db.session.commit()
+
+            msg = Message("Уведомление о регистрации", recipients=[email])
+            msg.body = f"Здравствуйте, {name}!\n\nВы успешно зарегистрировались на нашем сайте "'Золотое кольцо России'"."
+            mail.send(msg)
+
             message = 'Регистрация прошла успешно!'
             message_type = 'success'
             return render_template('register.html', message=message, message_type=message_type)
@@ -227,6 +241,7 @@ def register():
             return render_template('register.html', message=message, message_type=message_type)
 
     return render_template('register.html')
+
 
 
 @app.route('/add_to_favorites/<int:attraction_id>', methods=['POST'])
