@@ -5,6 +5,25 @@
 {% endblock %}
 
 {% block content %}
+<style>
+   
+    .links {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .links a {
+        display: block;
+        margin: 10px 0;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .links a:hover {
+        text-decoration: underline;
+    }
+</style>
+
 <div class="container">
     <h2 class="mt-5">Вход в личный кабинет</h2>
 
@@ -19,6 +38,10 @@
         </div>
         <button type="submit" class="btn btn-primary">Войти</button>
     </form>
+    <div class="links">
+        <a href="#">Забыли пароль?</a>
+        <a href="{{ url_for('register') }}">Ещё нет аккаунта? Зарегистрируйтесь!</a>
+    </div>
     
 </div>
 {% endblock %}

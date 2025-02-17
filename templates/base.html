@@ -29,7 +29,7 @@
           
           <div class="col-md-6 mb-0 mb-md-0 d-flex justify-content-center">
             <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
-              <li><a href="{{ url_for('lk') }}" class="nav-link px-2 link-secondary">ЛК</a></li>
+             
               <li><a href="{{ url_for('index') }}" class="nav-link px-2 link-secondary">Главная</a></li>
               {% for city in cities %}
                 <li class="nav-item">
@@ -43,9 +43,16 @@
          
     
           <div class="col-md-3 text-end">
-            <a href="{{ url_for('login') }}"><button type="button" class="btn btn-outline-primary me-2">Войти</button></a>
-            <a href="{{ url_for('register') }}"><button type="button" class="btn btn-primary">Зарегистрироваться</button></a>
-          </div>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('lk') }}">
+                    <button type="button" class="btn btn-outline-primary me-2">{{ current_user.name }}</button>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}">
+                    <button type="button" class="btn btn-outline-primary me-2">Войти</button>
+                </a>
+            {% endif %}
+        </div>
         </header>
 
 

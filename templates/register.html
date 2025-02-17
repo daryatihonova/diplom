@@ -5,6 +5,24 @@
 {% endblock %}
 
 {% block content %}
+<style>
+   
+    .links {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .links a {
+        display: block;
+        margin: 10px 0;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .links a:hover {
+        text-decoration: underline;
+    }
+</style>
 <div class="container">
     <h2>Регистрация</h2>
     <form method="POST">
@@ -26,6 +44,11 @@
         </div>
         <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
     </form>
+
+    <div class="links">
+        <a href="{{ url_for('login') }}">Уже есть аккаунт? Войдите!</a>
+        
+    </div>
 
     {% if message %}
     <div class="alert alert-{{ message_type }} mt-3" role="alert">
