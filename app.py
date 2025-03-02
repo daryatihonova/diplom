@@ -6,11 +6,14 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
 from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime, timedelta
 
 
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+app.config['SECURITY_PASSWORD_SALT'] = os.environ.get('SECURITY_PASSWORD_SALT', os.urandom(24))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///goldenring.db'
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -27,6 +30,24 @@ app.config['MAIL_PASSWORD'] = 'e6RrNbjtDrfBCYdtFsLF'
 app.config['MAIL_DEFAULT_SENDER'] = 'forsitediplom@internet.ru' 
 
 mail = Mail(app)
+
+
+def generate_token(email):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
+
+def confirm_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(
+            token,
+            salt=app.config['SECURITY_PASSWORD_SALT'],
+            max_age=expiration
+        )
+    except:
+        return False
+    return email
+
 
 
 class User(UserMixin, db.Model):
@@ -220,6 +241,12 @@ def register():
         password = request.form['password']
         password2 = request.form['password2']
 
+         # Проверка на существование пользователя с таким email
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Пользователь с такой электронной почтой уже существует. Вам необходимо войти в свой аккаунт.', 'danger')
+            return render_template('register.html')
+
         if len(name) > 0 and len(email) > 4 and len(password) > 4 and password == password2:
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
@@ -241,6 +268,49 @@ def register():
             return render_template('register.html', message=message, message_type=message_type)
 
     return render_template('register.html')
+
+
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            token = generate_token(user.email)
+            reset_url = url_for('reset_password', token=token, _external=True)
+            msg = Message("Сброс пароля", recipients=[user.email])
+            msg.body = f"Для сброса пароля перейдите по ссылке: {reset_url}"
+            mail.send(msg)
+            flash('На ваш email отправлена инструкция по сбросу пароля.', 'info')
+        else:
+            flash('Пользователь с таким email не найден.', 'danger')
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html')
+
+@app.route("/reset_password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    email = confirm_token(token)
+    if not email:
+        flash('Ссылка для сброса пароля недействительна или истекла.', 'danger')
+        return redirect(url_for('login'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('Пользователь не найден.', 'danger')
+        return redirect(url_for('login'))
+
+    if request.method == "POST":
+        password = request.form['password']
+        password2 = request.form['password2']
+        if password == password2:
+            user.password = bcrypt.generate_password_hash(password).decode('utf-8')
+            db.session.commit()
+            flash('Ваш пароль успешно обновлен.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Пароли не совпадают.', 'danger')
+    return render_template('reset_password.html', token=token)
 
 
 
