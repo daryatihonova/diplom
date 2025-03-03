@@ -17,7 +17,7 @@
         </div>
         <div class="icon-item">
             <i class="fas fa-star"></i>
-            <a href="https://afisha.yandex.ru/{{ city_slug }}/" class="text-link hover:underline">
+            <a href="{{ url_for('afisha', city_id=city.city_id) }}" class="text-link hover:underline">
                 куда сходить
             </a>
         </div>

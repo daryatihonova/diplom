@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Золотое кольцо России
+{% endblock %}
+
+{% block content %}
+<style>
+   
+    .links {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .links a {
+        display: block;
+        margin: 10px 0;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .links a:hover {
+        text-decoration: underline;
+    }
+</style>
+<div class="container">
+    <h2>Добавление нового мероприятия</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="city_id" value="{{ city_id }}">
+        <div class="form-group">
+            <label for="name">Название</label>
+            <input type="text" class="form-control" id="event_name" name="event_name" required>
+        </div>
+        <div class="form-group">
+            <label for="image">Загрузить изображение:</label>
+            <input type="file" id="image" name="image" accept="image/*" class="form-control">  
+        </div>
+        <div class="form-group">
+            <label for="date">Дата</label>
+            <input type="date" class="form-control" id="date" name="date" required>
+        </div>
+        <div class="form-group">
+            <label for="link">Ссылка</label>
+            <input type="link" class="form-control" id="link" name="link" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </form>
+
+
+
+
+</div>
+
+
+{% endblock %}

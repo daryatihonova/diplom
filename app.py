@@ -8,6 +8,8 @@ from flask_migrate import Migrate
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+
 
 
 
@@ -83,9 +85,9 @@ class Favourite(db.Model):
 class Event(db.Model):
     event_id = db.Column(db.Integer, primary_key=True)
     event_name = db.Column(db.String(50), nullable=False)
-    photo = db.Column(db.LargeBinary, nullable=False)
+    photo = db.Column(db.String(255), nullable=True)
     date = db.Column(db.Date, nullable=False)
-    description = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=True)
     link = db.Column(db.String(40), nullable=False)
     city_id = db.Column(db.Integer, db.ForeignKey('city.city_id'), nullable=False)
 
@@ -152,16 +154,11 @@ def attraction_detail(attraction_id):
         else:
             flash('Комментарий не может быть пустым!', 'warning')
 
-     # Получаем все комментарии вместе с именами пользователей
     comments = db.session.query(Feedback, User.name).join(User).filter(Feedback.attraction_id == attraction_id).all()
-    
-    # Передача координат в формате JSON
+
     coordinates = {'latitude': attraction.latitude, 'longitude': attraction.longitude}
     
     return render_template('attraction_detail.html', attraction=attraction, comments=comments, coordinates=coordinates)
-
-
-
 
 
 @login_manager.user_loader
@@ -185,7 +182,7 @@ def login():
             login_user(admin_user)
             return redirect(url_for('admin_page'))  
 
-        # Проверка пользователя в базе данных
+        # Проверка пользователя в бд
         user = User.query.filter_by(email=email).first()
         
         if user and bcrypt.check_password_hash(user.password, password):
@@ -312,6 +309,55 @@ def reset_password(token):
             flash('Пароли не совпадают.', 'danger')
     return render_template('reset_password.html', token=token)
 
+
+@app.route("/afisha/<int:city_id>", methods=["POST", "GET"])
+def afisha(city_id):
+    city = City.query.get(city_id) 
+    event = Event.query.filter_by(city_id=city_id).all()
+    return render_template('afisha.html', event = event, city=city)
+
+
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'img')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route("/new_event/<int:city_id>", methods=["POST", "GET"])
+def new_event(city_id):
+    if request.method == "POST":
+        event_name = request.form['event_name']
+        
+        date_str = request.form['date']
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        link = request.form['link']
+
+        photo = None
+        if 'image' in request.files:
+                file = request.files['image']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)  
+                    photo = filename 
+
+        if len(event_name) > 0  and len(link) > 0:
+            
+            new_event = Event(event_name=event_name, photo=photo, date=date, link=link, city_id=city_id)
+            db.session.add(new_event)
+            db.session.commit()
+
+            city = City.query.get(city_id)
+            event = Event.query.all()
+            return render_template('afisha.html', event=event, city=city)
+
+        else:
+            message = 'Пожалуйста, проверьте введенные данные.'
+            message_type = 'danger'
+            return render_template('new_event.html', message=message, message_type=message_type, city_id=city_id)
+    return render_template('new_event.html', city_id=city_id)
 
 
 @app.route('/add_to_favorites/<int:attraction_id>', methods=['POST'])
