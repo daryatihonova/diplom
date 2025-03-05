@@ -1,0 +1,49 @@
+/* Стили для тёмной темы */
+body.dark-theme {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.dark-theme .content {
+    background-color: #121212;
+    color: #ffffff;
+}
+.dark-theme .album {
+    background-color: #1f1f1f !important; 
+}
+
+.dark-theme header {
+    background-color: #1f1f1f;
+    box-shadow: 0 5px 25px rgba(255, 255, 255, 0.15);
+}
+
+.dark-theme .comments-section {
+    background-color: #1f1f1f;
+    border-color: #333;
+}
+
+
+.dark-theme .comment {
+    border-bottom-color: #333;
+}
+
+.dark-theme .comment-username {
+    color: #ffffff;
+}
+
+.dark-theme .card {
+    background-color: #1f1f1f;
+    color: #ffffff;
+}
+
+.dark-theme .nav-link {
+    color: #ffffff;
+}
+
+.dark-theme .nav-link:hover {
+    color: #cccccc;
+}
+
+.dark-theme .button-image {
+    filter: brightness(0) invert(1);
+}

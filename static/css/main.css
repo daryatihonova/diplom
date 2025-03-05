@@ -107,14 +107,7 @@ form {
     padding: 15px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
-
-
-
-
-
-
-   
-  
+ 
 .comments-section {
     display: flex; 
     justify-content: center;
@@ -144,4 +137,35 @@ form {
 
 
 
-  
+.image-button-container {
+    position: fixed; 
+    right: 10px; 
+    top: 92%; 
+    transform: translateY(-50%); 
+    z-index: 1000; 
+  }
+
+
+  .image-button {
+    width: 100px;
+    height: 50px;
+    border: none;
+    background-color: transparent; 
+    cursor: pointer; 
+  }
+
+ 
+  .button-image {
+    width: 30px; 
+    height: auto; 
+    transition: filter 0.3s ease;
+  }
+
+ 
+  .image-button:hover {
+    opacity: 0.8;
+  }
+
+  .image-button:active {
+    transform: scale(0.95);
+  }
