@@ -63,6 +63,7 @@ h2 {
     justify-content: center; /* Центрирование по горизонтали */
     margin-top: 20px;
     margin-bottom: 20px;
+    font-family: 'Georgia', serif; 
 }
 
 .icon-item i {
@@ -85,9 +86,10 @@ h2 {
 
 /*описание города*/
 .about{
-    margin-top: 0;
-    text-align: left;
-    padding: 20px;
+  font-family: 'Georgia', serif; 
+  line-height: 1.8; 
+  font-size: 1.1rem; 
+  padding-left: 1.5rem; 
 }
 
 

@@ -146,6 +146,12 @@ def attraction_detail(attraction_id):
             try:
                 db.session.add(feedback)
                 db.session.commit()
+                 # Отправка письма администратору
+                user = User.query.get(current_user.user_id)
+                city = City.query.get(attraction.city_id)
+                msg = Message("Новый комментарий на сайте", recipients=['forsitediplom@internet.ru'])
+                msg.body = f"Пользователь {user.name} ({user.email}) оставил комментарий для достопримечательности {attraction.attraction_name} в городе {city.city_name}.\n\nКомментарий: {comment}"
+                mail.send(msg)
                 flash('Комментарий успешно добавлен!', 'success')
                 return redirect(f'/attraction_detail/{attraction_id}')  
             except Exception as e:
@@ -172,7 +178,7 @@ def login():
         email = request.form['email']
         password = request.form['password']
          # Проверка на администратора
-        if email == 'admin@mail.ru' and password == 'admin':
+        if email == 'forsitediplom@internet.ru' and password == 'admin':
             admin_user = User.query.filter_by(email=email).first()
             if not admin_user:
                 admin_user = User(name='Admin', email=email, password=bcrypt.generate_password_hash(password).decode('utf-8'))
@@ -380,7 +386,7 @@ def add_to_favorites(attraction_id):
 @app.route("/admin_page")
 @login_required
 def admin_page():
-    if current_user.email != 'admin@mail.ru':
+    if current_user.email != 'forsitediplom@internet.ru':
         return abort(403)  # Запрет доступа, если не администратор
     return render_template('admin_page.html')  
 
@@ -389,7 +395,7 @@ def admin_page():
 @app.route("/delete_feedback/<int:feedback_id>", methods=['POST'])
 @login_required  
 def delete_feedback(feedback_id):
-    if current_user.email != 'admin@mail.ru':
+    if current_user.email != 'forsitediplom@internet.ru':
         flash('У вас нет прав для удаления комментариев.', 'danger')
         return redirect(request.referrer)  # Возвращаем на предыдущую страницу
 
