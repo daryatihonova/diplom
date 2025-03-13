@@ -51,26 +51,27 @@
         
     </div>
 
-    {% if message %}
-    <div class="alert alert-{{ message_type }} mt-3" role="alert">
-        {{ message }}
-    </div>
-    {% endif %}
-
-
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% with messages = get_flashed_messages(with_categories=True) %}
     {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
-                {{ message }}
-            </div>
-        {% endfor %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
 {% endwith %}
 
 </div>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var flashes = document.querySelectorAll('.flashes li');
+            flashes.forEach(function(flash) {
+                flash.style.display = 'none';
+            });
+        }, 3000); //3 секунды
+    });
+</script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

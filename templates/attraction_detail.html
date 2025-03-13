@@ -76,25 +76,39 @@
     }
 
     .flashes {
-        list-style-type: none;
-        padding: 0;
-    }
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
 
-    .flashes li {
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-    }
+.flashes li {
+    list-style: none;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    color: white;
+    opacity: 0.9;
+    animation: fadeOut 5s forwards;
+}
 
-    .flashes .success {
-        background-color: #d4edda;
-        color: #155724;
-    }
+.flashes .success {
+    background-color: #28a745;
+}
 
-    .flashes .error {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
+.flashes .warning {
+    background-color: #ffc107;
+}
+
+.flashes .danger {
+    background-color: #dc3545;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 0.9; }
+    90% { opacity: 0.9; }
+    100% { opacity: 0; display: none; }
+}
 </style>
 
 <div class="attraction-container">
@@ -127,14 +141,14 @@
     </form>
     
     {% with messages = get_flashed_messages(with_categories=True) %}
-        {% if messages %}
-            <ul class="flashes">
-                {% for category, message in messages %}
-                    <li class="{{ category }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
     
     <form method="post" class="comment-container">
         <input type="text" name="comment" placeholder="Оставить комментарий" class="comment-form"><br>
@@ -158,4 +172,15 @@
         {% endfor %}
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var flashes = document.querySelectorAll('.flashes li');
+            flashes.forEach(function(flash) {
+                flash.style.display = 'none';
+            });
+        }, 3000); //3 секунды
+    });
+</script>
 {% endblock %}

@@ -6,6 +6,7 @@ header{
     background: #fff;
     -webkit-box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
         box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15) ;
+    
 }
 
 .header__img{
@@ -171,3 +172,118 @@ form {
   .image-button:active {
     transform: scale(0.95);
   }
+
+  /*для сообщений*/
+  .flashes {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.flashes li {
+    list-style: none;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    color: white;
+    opacity: 0.9;
+    animation: fadeOut 5s forwards;
+}
+
+.flashes .success {
+    background-color: #28a745;
+}
+
+.flashes .warning {
+    background-color: #ffc107;
+}
+
+.flashes .danger {
+    background-color: #dc3545;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 0.9; }
+    90% { opacity: 0.9; }
+    100% { opacity: 0; display: none; }
+}
+
+
+/* Стили для бургер-меню */
+.burger-button {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: row;
+}
+
+@media (max-width: 768px) {
+  .burger-button {
+      display: block;
+  }
+
+ /* Стили для бургер-меню */
+.burger-button {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: inherit;
+  margin-right: 10px;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: row;
+}
+
+@media (max-width: 768px) {
+  .burger-button {
+      display: block;
+  }
+
+  .nav-menu {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: var(--menu-bg, #fff); /* Фон меню */
+      border-top: 1px solid var(--menu-border, #ddd); /* Граница меню */
+      z-index: 1000;
+  }
+
+  .nav-menu.active {
+      display: flex;
+  }
+
+  .nav-menu .nav-item {
+      padding: 10px;
+      text-align: center;
+  }
+
+  .nav-menu .nav-link {
+      color: var(--menu-text, #000); /* Цвет текста ссылок */
+  }
+}
+
+/* Стили для тёмной темы */
+.dark-theme .nav-menu {
+  --menu-bg: #333; /* Фон меню в тёмной теме */
+  --menu-border: #444; /* Граница меню в тёмной теме */
+  --menu-text: #fff; /* Цвет текста ссылок в тёмной теме */
+}
+
+.dark-theme .burger-button {
+  color: #fff; /* Цвет иконки бургера в тёмной теме */
+}
+}

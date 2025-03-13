@@ -22,6 +22,41 @@
     .links a:hover {
         text-decoration: underline;
     }
+
+    .flashes {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.flashes li {
+    list-style: none;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    color: white;
+    opacity: 0.9;
+    animation: fadeOut 5s forwards;
+}
+
+.flashes .success {
+    background-color: #28a745;
+}
+
+.flashes .warning {
+    background-color: #ffc107;
+}
+
+.flashes .danger {
+    background-color: #dc3545;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 0.9; }
+    90% { opacity: 0.9; }
+    100% { opacity: 0; display: none; }
+}
 </style>
 
 <div class="container">
@@ -39,10 +74,29 @@
         <p></p>
         <button type="submit" class="btn btn-primary">Войти</button>
     </form>
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
     <div class="links">
         <a href="{{ url_for('forgot_password') }}">Забыли пароль?</a>
         <a href="{{ url_for('register') }}">Ещё нет аккаунта? Зарегистрируйтесь!</a>
     </div>
     
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var flashes = document.querySelectorAll('.flashes li');
+            flashes.forEach(function(flash) {
+                flash.style.display = 'none';
+            });
+        }, 3000); //3 секунды
+    });
+</script>
 {% endblock %}

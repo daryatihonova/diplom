@@ -195,7 +195,7 @@ def login():
             login_user(user)
             return redirect(url_for('lk'))
         else:
-            flash("Введены неверные данные. Попробуйте снова.")
+            flash("Введены неверные данные. Попробуйте снова.", 'danger')
     
     return render_template('login.html')
 
@@ -247,7 +247,7 @@ def register():
          # Проверка на существование пользователя с таким email
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            flash('Пользователь с такой электронной почтой уже существует. Вам необходимо войти в свой аккаунт.', 'danger')
+            flash('Пользователь с такой электронной почтой уже существует. Вам необходимо войти в свой аккаунт.', 'warning')
             return render_template('register.html')
 
         if len(name) > 0 and len(email) > 4 and len(password) > 4 and password == password2:
@@ -261,14 +261,11 @@ def register():
             msg.body = f"Здравствуйте, {name}!\n\nВы успешно зарегистрировались на нашем сайте "'Золотое кольцо России'"."
             mail.send(msg)
 
-            message = 'Регистрация прошла успешно!'
-            message_type = 'success'
-            return render_template('register.html', message=message, message_type=message_type)
-
+            flash('Регистрация прошла успешно!', 'success')
+            return render_template('register.html')
         else:
-            message = 'Пожалуйста, проверьте введенные данные.'
-            message_type = 'danger'
-            return render_template('register.html', message=message, message_type=message_type)
+            flash('Пожалуйста, проверьте введенные данные.', 'danger')
+            return render_template('register.html')
 
     return render_template('register.html')
 
@@ -285,9 +282,9 @@ def forgot_password():
             msg = Message("Сброс пароля", recipients=[user.email])
             msg.body = f"Для сброса пароля перейдите по ссылке: {reset_url}"
             mail.send(msg)
-            flash('На ваш email отправлена инструкция по сбросу пароля.', 'info')
+            flash('На ваш email отправлена инструкция по сбросу пароля.', 'success')
         else:
-            flash('Пользователь с таким email не найден.', 'danger')
+            flash('Пользователь с таким email не найден.', 'warning')
         return redirect(url_for('login'))
     return render_template('forgot_password.html')
 
@@ -295,7 +292,7 @@ def forgot_password():
 def reset_password(token):
     email = confirm_token(token)
     if not email:
-        flash('Ссылка для сброса пароля недействительна или истекла.', 'danger')
+        flash('Ссылка для сброса пароля недействительна или истекла.', 'warning')
         return redirect(url_for('login'))
 
     user = User.query.filter_by(email=email).first()
@@ -371,14 +368,14 @@ def new_event(city_id):
 def add_to_favorites(attraction_id):
     existing_favorite = Favourite.query.filter_by(user_id=current_user.user_id, attraction_id=attraction_id).first()
     if existing_favorite:
-        flash("Эта достопримечательность уже добавлена в избранное.")
+        flash("Эта достопримечательность уже добавлена в избранное.", 'warning')
         return redirect(url_for('attraction_detail', attraction_id=attraction_id))
 
     new_favorite = Favourite(user_id=current_user.user_id, attraction_id=attraction_id)
     db.session.add(new_favorite)
     db.session.commit()
 
-    flash("Вы добавили достопримечательность в избранное!")
+    flash("Вы добавили достопримечательность в избранное!", 'success')
     return redirect(url_for('attraction_detail', attraction_id=attraction_id))
 
 
