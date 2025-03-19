@@ -49,13 +49,13 @@
 <body>
     <div class="page">
         <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-          <div class="col-md-3 mb-2 mb-md-0">
+          <div class="col-md-3 mb-2 mb-md-0 d-flex align-items-center">
             <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
               <img class="header__img" src="{{ url_for('static', filename='img/russia.png') }}" alt="russia">
             </a>
           </div>
 
-          <div class="col-md-6 mb-0 mb-md-0 d-flex justify-content-center">
+          <div class="col-md-6 mb-0 mb-md-0 d-flex justify-content-end align-items-center">
             <button class="burger-button d-md-none">
               <i class="fas fa-bars"></i>
             </button>
@@ -69,17 +69,24 @@
             </ul>
           </div>
 
-          <div class="col-md-3 text-end">
+          <div class="col-md-3 text-end d-flex align-items-center justify-content-end">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('lk') }}">
-                    <button type="button" class="btn btn-outline-primary me-2">{{ current_user.name }}</button>
-                </a>
+                {% if current_user.email == 'forsitediplom@internet.ru' %}
+                    <a href="{{ url_for('admin_page') }}">
+                        <button type="button" class="btn btn-outline-primary me-2">{{ current_user.name }}</button>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('lk') }}">
+                        <button type="button" class="btn btn-outline-primary me-2">{{ current_user.name }}</button>
+                    </a>
+                {% endif %}
             {% else %}
                 <a href="{{ url_for('login') }}">
                     <button type="button" class="btn btn-outline-primary me-2">Войти</button>
                 </a>
             {% endif %}
-          </div>
+        </div>
+        
         </header>
 
         <div class="content">

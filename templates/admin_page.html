@@ -4,7 +4,158 @@
 {% endblock %}
 
 {% block content %}
-<h2>ЛК админа</h2>
+<style>
+
+    :root {
+        --background-color: #ffffff;
+        --text-color: #333333;
+        --comment-bg: #f9f9f9;
+        --comment-border: #ddd;
+        --comment-username-color: #333;
+        --comment-attraction-color: #555;
+        --comment-text-color: #444;
+    }
+
+    /*для тёмной темы */
+    body.dark-theme {
+        --background-color: #121212;
+        --text-color: #ffffff;
+        --comment-bg: #1f1f1f;
+        --comment-border: #333;
+        --comment-username-color: #ffffff;
+        --comment-attraction-color: #cccccc;
+        --comment-text-color: #dddddd;
+    }
 
 
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 0;
+    }
+
+    .comments-section {
+        margin-top: 20px;
+        padding: 0 20px; 
+    }
+
+    h5 {
+        text-align: center;
+    }
+
+    .list-group-item {
+        background-color: var(--comment-bg);
+        border: none;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .list-group-item.new-comment {
+        border-left: 5px solid #ffcc00;
+        background-color: #fff9e6;
+    }
+
+    .dark-theme .list-group-item.new-comment {
+        border-left: 5px solid #ffcc00;
+        background-color: #333300;
+    }
+
+    .list-group-item img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+
+    .list-group-item h6 {
+        margin-bottom: 0;
+        color: var(--comment-username-color);
+    }
+
+    .list-group-item p {
+        margin-bottom: 0;
+        color: var(--comment-text-color);
+        opacity: 0.75;
+    }
+
+    .list-group-item small {
+        color: var(--comment-attraction-color);
+        opacity: 0.5;
+        white-space: nowrap;
+    }
+
+    .backbtn {
+        display: block;
+        margin: 20px auto;
+        text-align: center;
+        width: fit-content;
+        padding: 10px 20px;
+        background-color: var(--comment-bg);
+        border-radius: 5px;
+        color: var(--text-color);
+        text-decoration: none;
+    }
+
+    .backbtn:hover {
+        background-color: var(--comment-border);
+        text-decoration: none;
+    }
+
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 768px) {
+        .list-group-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .list-group-item .d-flex {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .list-group-item small {
+            align-self: flex-end; 
+        }
+
+        .comments-section {
+            padding: 0 10px; 
+        }
+
+      
+    }
+</style>
+<h2>Личный кабинет администратора</h2>
+
+<h5>Комментарии пользователей</h5>
+<div class="comments-section">
+    <div class="d-flex flex-column flex-md-row p-4 gap-4 py-md-5 align-items-center justify-content-center">
+        <div class="list-group w-100">
+            {% if all_comments %}
+                {% for comment in all_comments %}
+                    <div class="list-group-item list-group-item-action d-flex gap-3 py-3 {% if comment.created_at and (now - comment.created_at).total_seconds() < 86400 %}new-comment{% endif %}" aria-current="true">
+                        <div class="d-flex gap-2 w-100 justify-content-between">
+                            <div>
+                                <h6 class="mb-0">{{ comment.user_name }} ({{ comment.user_email }})</h6>
+                                <p class="mb-0 opacity-75">
+                                    <strong>Достопримечательность:</strong> {{ comment.attraction_name }} (Город: {{ comment.city_name }})
+                                </p>
+                                <p class="mb-0 opacity-75">
+                                    <strong>Комментарий:</strong> {{ comment.text }}
+                                </p>
+                            </div>
+                            <small class="opacity-50 text-nowrap">
+                                {{ comment.created_at.strftime('%d.%m.%Y %H:%M') if comment.created_at else 'Дата не указана' }}
+                            </small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Нет комментариев.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('logout') }}">Выйти</a>
 {% endblock %}

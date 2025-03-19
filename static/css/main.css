@@ -6,6 +6,7 @@ header{
     background: #fff;
     -webkit-box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
         box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15) ;
+    width: 100%; 
     
 }
 
@@ -38,12 +39,12 @@ h2 {
 
 
   .card {
-    height: 100%; /* Заставляет карточки занимать одинаковую высоту */
+    height: 100%; 
 }
 .card-img-top {
-    width: 100%; /* Заставляет изображение занимать всю ширину карточки */
-    height: 200px; /* Фиксированная высота для изображений */
-    object-fit: cover; /* Обрезает изображение, сохраняя его пропорции */
+    width: 100%; 
+    height: 200px; 
+    object-fit: cover;
 }
 
 
@@ -61,7 +62,7 @@ h2 {
 /*иконки перехода в городах*/
 .icons-container {
     display: flex;
-    justify-content: center; /* Центрирование по горизонтали */
+    justify-content: center; 
     margin-top: 20px;
     margin-bottom: 20px;
     font-family: 'Georgia', serif; 
@@ -90,7 +91,9 @@ h2 {
   font-family: 'Georgia', serif; 
   line-height: 1.8; 
   font-size: 1.1rem; 
-  padding-left: 1.5rem; 
+  text-align: center;
+  margin: 1rem auto;
+  max-width: 80%;
 }
 
 
@@ -224,66 +227,86 @@ form {
   flex-direction: row;
 }
 
+
 @media (max-width: 768px) {
-  .burger-button {
-      display: block;
+  header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
- /* Стили для бургер-меню */
-.burger-button {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: inherit;
-  margin-right: 10px;
-}
+ 
+  .col-md-3, .col-md-6 {
+    flex: none; 
+    text-align: left;
+  }
 
-.nav-menu {
-  display: flex;
-  flex-direction: row;
-}
+  .col-md-3:first-child {
+    width: auto; 
+    margin-right: auto; 
+  }
 
-@media (max-width: 768px) {
+  
+  .col-md-3:last-child {
+    width: auto;
+    display: flex; 
+    align-items: center; 
+  }
+
+ 
+  .col-md-6 {
+    display: none;
+  }
+
   .burger-button {
-      display: block;
+    display: block;
+    margin-left: 10px; 
   }
 
   .nav-menu {
-      display: none;
-      flex-direction: column;
-      position: absolute;
-      top: 60px;
-      left: 0;
-      width: 100%;
-      background: var(--menu-bg, #fff); /* Фон меню */
-      border-top: 1px solid var(--menu-border, #ddd); /* Граница меню */
-      z-index: 1000;
+    display: none;
+    flex-direction: column;
+    position: fixed; 
+    top: 0; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    width: 90%; 
+    max-width: 400px; 
+    height: auto; 
+    max-height: 80vh; 
+    background: var(--menu-bg, #fff);
+    border: 1px solid var(--menu-border, #ddd); 
+    border-radius: 5px; 
+    z-index: 1000;
+    padding: 20px; 
+    overflow-y: auto; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); 
+    align-items: center; 
+    text-align: center; 
   }
 
   .nav-menu.active {
-      display: flex;
+    display: flex;
   }
 
   .nav-menu .nav-item {
-      padding: 10px;
-      text-align: center;
+    padding: 10px;
+    text-align: center; 
   }
 
   .nav-menu .nav-link {
-      color: var(--menu-text, #000); /* Цвет текста ссылок */
+    color: var(--menu-text, #000);
   }
 }
 
 /* Стили для тёмной темы */
 .dark-theme .nav-menu {
-  --menu-bg: #333; /* Фон меню в тёмной теме */
-  --menu-border: #444; /* Граница меню в тёмной теме */
-  --menu-text: #fff; /* Цвет текста ссылок в тёмной теме */
+  --menu-bg: #333;
+  --menu-border: #444;
+  --menu-text: #fff;
 }
 
 .dark-theme .burger-button {
-  color: #fff; /* Цвет иконки бургера в тёмной теме */
+  color: #fff;
 }
-}
+

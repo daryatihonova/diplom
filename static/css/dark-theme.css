@@ -47,3 +47,14 @@ body.dark-theme {
 .dark-theme .button-image {
     filter: brightness(0) invert(1);
 }
+
+/* для кнопки Подробнее */
+.dark-theme .btn-outline-secondary {
+    color: #ffffff; 
+    border-color: #ffffff; 
+}
+
+.dark-theme .btn-outline-secondary:hover {
+    background-color: #ffffff;
+    color: #121212; 
+}

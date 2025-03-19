@@ -6,18 +6,18 @@
 
 {% block content %}
 <style>
-    .attraction-container {
+     .attraction-container {
         width: 100%; 
         margin: 0; 
-        padding: 20px;
+        padding: 10px;
         box-sizing: border-box; 
     }
 
     .attraction-grid {
         display: grid;
-        grid-template-columns: 1.2fr 1fr; 
-        gap: 20px;
-        margin-bottom: 20px;
+        grid-template-columns: 1fr; 
+        gap: 10px;
+        margin-bottom: 10px;
     }
 
     .attraction-photo img {
@@ -28,36 +28,34 @@
 
     #map {
         width: 100%;
-        height: auto; 
+        height: 250px; 
         border-radius: 8px;
     }
 
     .about {
         grid-column: 1 / -1; 
-        font-size: 18px;
+        font-size: 16px;
         line-height: 1.6;
         font-family: 'Georgia', serif;
-        line-height: 1.8;
-        font-size: 1.1rem;
-        padding: 1.5rem; 
+        padding: 1rem; 
         text-align: justify; 
     }
 
-
     .comment-container {
-        margin-top: 20px;
+        margin-top: 10px;
     }
 
     .comment-form {
         width: 100%;
-        padding: 10px ;
+        padding: 10px;
         margin-bottom: 10px;
         border: 1px solid #ccc;
         border-radius: 4px;
+        font-size: 14px;
     }
 
     .comments-section {
-        margin-top: 20px;
+        margin-top: 10px;
     }
 
     .comment {
@@ -67,48 +65,73 @@
 
     .comment-username {
         font-weight: bold;
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .comment-text {
         margin-top: 5px;
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .flashes {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-}
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+    }
 
-.flashes li {
-    list-style: none;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    color: white;
-    opacity: 0.9;
-    animation: fadeOut 5s forwards;
-}
+    .flashes li {
+        list-style: none;
+        padding: 10px;
+        margin-bottom: 5px;
+        border-radius: 5px;
+        color: white;
+        opacity: 0.9;
+        animation: fadeOut 5s forwards;
+    }
 
-.flashes .success {
-    background-color: #28a745;
-}
+    .flashes .success {
+        background-color: #28a745;
+    }
 
-.flashes .warning {
-    background-color: #ffc107;
-}
+    .flashes .warning {
+        background-color: #ffc107;
+    }
 
-.flashes .danger {
-    background-color: #dc3545;
-}
+    .flashes .danger {
+        background-color: #dc3545;
+    }
 
-@keyframes fadeOut {
-    0% { opacity: 0.9; }
-    90% { opacity: 0.9; }
-    100% { opacity: 0; display: none; }
-}
+    @keyframes fadeOut {
+        0% { opacity: 0.9; }
+        90% { opacity: 0.9; }
+        100% { opacity: 0; display: none; }
+    }
+
+    @media (min-width: 768px) {
+        .attraction-grid {
+            grid-template-columns: 1.5fr 1fr; 
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .about {
+            font-size: 18px;
+            padding: 1.5rem; 
+        }
+
+        .comment-form {
+            font-size: 16px;
+        }
+
+        .comment-username {
+            font-size: 16px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+        }
+    }
 </style>
 
 <div class="attraction-container">
@@ -163,7 +186,7 @@
             <div class="comment">
                 <div class="comment-username">{{ username }}</div>
                 <div class="comment-text">{{ feedback.comment }}</div>
-                {% if current_user.is_authenticated and current_user.email == 'admin@mail.ru' %}
+                {% if current_user.is_authenticated and current_user.email == 'forsitediplom@internet.ru' %}
                     <form action="{{ url_for('delete_feedback', feedback_id=feedback.feedback_id) }}" method="POST" style="display:inline;">
                         <button type="submit" class="btn btn-danger">Удалить</button>
                     </form>

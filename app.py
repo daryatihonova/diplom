@@ -96,6 +96,7 @@ class Feedback(db.Model):
     comment = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     attraction_id = db.Column(db.Integer, db.ForeignKey('attraction.attraction_id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
 @app.context_processor
 def inject_cities():
@@ -384,8 +385,20 @@ def add_to_favorites(attraction_id):
 @login_required
 def admin_page():
     if current_user.email != 'forsitediplom@internet.ru':
-        return abort(403)  # Запрет доступа, если не администратор
-    return render_template('admin_page.html')  
+        flash('У вас нет доступа к этой странице.', 'danger')
+        return redirect(url_for('lk'))
+
+    all_comments = db.session.query(
+        Feedback.comment.label('text'),
+        User.name.label('user_name'),
+        User.email.label('user_email'),
+        Attraction.attraction_name.label('attraction_name'),
+        City.city_name.label('city_name'),
+        Feedback.created_at.label('created_at')
+    ).join(User).join(Attraction).join(City).all()
+
+    now = datetime.utcnow()  # Получаем текущее время
+    return render_template('admin_page.html', all_comments=all_comments, now=now)
 
 
  
