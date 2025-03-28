@@ -27,9 +27,7 @@ app.config['MAIL_SERVER'] = 'smtp.mail.ru'
 app.config['MAIL_PORT'] = 465 
 app.config['MAIL_USE_TLS'] = False  
 app.config['MAIL_USE_SSL'] = True   
-app.config['MAIL_USERNAME'] = 'forsitediplom@internet.ru'  
-app.config['MAIL_PASSWORD'] = 'e6RrNbjtDrfBCYdtFsLF'  
-app.config['MAIL_DEFAULT_SENDER'] = 'forsitediplom@internet.ru' 
+
 
 mail = Mail(app)
 
@@ -437,9 +435,9 @@ def transliterate(text):
     
     # Заменяем буквы и удаляем недопустимые символы
     result = ''.join(translit_dict.get(char, char) for char in text.lower())
-    result = re.sub(r'[^a-z0-9-]', '-', result)  # Заменяем недопустимые символы на '-'
-    result = re.sub(r'-+', '-', result)  # Убираем дублирующиеся '-'
-    return result.strip('-')  # Убираем '-' в начале и конце
+    result = re.sub(r'[^a-z0-9-]', '-', result) 
+    result = re.sub(r'-+', '-', result)  
+    return result.strip('-')  
 
 
 
