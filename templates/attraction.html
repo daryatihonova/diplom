@@ -6,15 +6,30 @@
         <h2>Достопримечательности в городе {{ city.city_name }}</h2>
 
         <form method="GET" action="{{ url_for('attractions', city_id=city.city_id) }}" class="mb-4">
-            <select name="attraction_type" class="form-select" onchange="this.form.submit()">
-                <option value="">Все</option>
-                <option value="Храм, церковь, собор">Храм, церковь, собор</option>
-                <option value="Парк">Парк</option>
-                <option value="Музей">Музей</option>
-                <option value="Памятник">Памятник</option>
-            </select>
+            <div class="d-flex align-items-center">
+                <select name="attraction_type" class="form-select me-2 " onchange="this.form.submit()">
+                    <option value="Все">Все</option>
+                    <option value="Храм, церковь, собор">Храм, церковь, собор</option>
+                    <option value="Парк">Парк</option>
+                    <option value="Музей">Музей</option>
+                    <option value="Памятник">Памятник</option>
+                </select>
+        
+                <!-- Кнопка с иконкой карты -->
+                <button type="submit" name="show_nearby" value="true" class="btn btn-outline-secondary" title="Показать ближайшие">
+                    <i class="fas fa-map-marked-alt"></i> 
+                </button>
+            </div>
         </form>
-
+        {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
             {% for attraction in attractions %}
             <div class="col">
@@ -22,6 +37,9 @@
                     <img src="{{ url_for('static', filename='img/' + attraction.photo) }}" class="card-img-top" alt="{{ attraction.attraction_name }}">
                     <div class="card-body">
                         <p class="card-text">{{ attraction.attraction_name }}</p>
+                        {% if show_distance and attraction.distance %}
+                            <p class="card-text">Расстояние: {{ attraction.distance|round(2) }} км</p>
+                        {% endif %}
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="btn-group">
                                 <a href="{{ url_for('attraction_detail', attraction_id=attraction.attraction_id) }}" class="btn btn-sm btn-outline-secondary">Подробнее</a>
@@ -32,6 +50,12 @@
             </div>
             {% endfor %}
         </div>
+    </div>
+</div>
+<p></p>
+<div class="d-flex justify-content-between align-items-center">
+    <div class="btn-group">
+        <a href="{{ url_for('city_detail', city_id=city.city_id) }}" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Назад</a>
     </div>
 </div>
 {% endblock %}

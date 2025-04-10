@@ -1,5 +1,6 @@
 import os
 import re
+import requests
 from flask import Flask, render_template, request, redirect, url_for,  flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -7,16 +8,16 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_migrate import Migrate
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
-
-
+import math 
+from sqlalchemy import func  
 
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 app.config['SECURITY_PASSWORD_SALT'] = os.environ.get('SECURITY_PASSWORD_SALT', os.urandom(24))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///goldenring.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///goldenring2.db'
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
@@ -27,7 +28,9 @@ app.config['MAIL_SERVER'] = 'smtp.mail.ru'
 app.config['MAIL_PORT'] = 465 
 app.config['MAIL_USE_TLS'] = False  
 app.config['MAIL_USE_SSL'] = True   
-
+app.config['MAIL_USERNAME'] = 'forsitediplom@internet.ru'  
+app.config['MAIL_PASSWORD'] = 'e6RrNbjtDrfBCYdtFsLF'  
+app.config['MAIL_DEFAULT_SENDER'] = 'forsitediplom@internet.ru' 
 
 mail = Mail(app)
 
@@ -117,13 +120,52 @@ def city_detail(city_id):
 
 @app.route("/attractions/<int:city_id>", methods=['GET'])
 def attractions(city_id):
+    city = City.query.get(city_id)
+    if not city:
+        abort(404)
     category_filter = request.args.get('attraction_type')
-    if category_filter:
-        attractions = Attraction.query.filter_by(city_id=city_id, attraction_type=category_filter).all()
+    show_nearby = request.args.get('show_nearby') == 'true'
+    
+    if category_filter and category_filter != "Все":
+        attractions_query = Attraction.query.filter_by(city_id=city_id, attraction_type=category_filter)
     else:
-        attractions = Attraction.query.filter_by(city_id=city_id).all()
-    city = City.query.get(city_id)  
-    return render_template('attraction.html', attractions=attractions, city=city)
+        attractions_query = Attraction.query.filter_by(city_id=city_id)
+
+    show_distance = False  
+
+    if show_nearby:
+        # Фиксированный IP-адрес 
+        user_ip = "94.158.118.147"
+        print(f"Используем фиксированный IP-адрес: {user_ip}")
+        
+        location_info = get_location_from_ip(user_ip)
+
+        if isinstance(location_info, dict) and 'coordinates' in location_info:
+            user_latitude, user_longitude = location_info['coordinates']
+            
+            attractions = attractions_query.all()
+            for attraction in attractions:
+                attraction.distance = calculate_distance(
+                    user_latitude, user_longitude,
+                    attraction.latitude, attraction.longitude
+                )
+            
+            attractions.sort(key=lambda x: x.distance)
+            attractions = attractions[:5]  # 5 ближайших
+            show_distance = True  
+        else:
+            flash("Не удалось определить местоположение для фиксированного IP.", "warning")
+            attractions = attractions_query.all()
+    else:
+        attractions = attractions_query.all()
+
+    return render_template('attraction.html', 
+                         attractions=attractions, 
+                         city=city,
+                         show_distance=show_distance)
+
+
+
 
 
 @app.route("/attraction_detail/<int:attraction_id>", methods=['POST', 'GET'])
@@ -138,7 +180,6 @@ def attraction_detail(attraction_id):
 
         comment = request.form['comment']
         
-        # Проверяем, что комментарий не пустой
         if comment:
             feedback = Feedback(comment=comment, user_id=current_user.user_id, attraction_id=attraction_id)
 
@@ -315,8 +356,22 @@ def reset_password(token):
 @app.route("/afisha/<int:city_id>", methods=["POST", "GET"])
 def afisha(city_id):
     city = City.query.get(city_id) 
-    event = Event.query.filter_by(city_id=city_id).all()
-    return render_template('afisha.html', event = event, city=city)
+    
+    today = date.today() # Сегодняшняя дата
+    
+    all_events = Event.query.filter_by(city_id=city_id).all()
+
+    
+    upcoming_events = [event for event in all_events if event.date >= today]
+    past_events = [event for event in all_events if event.date < today]
+
+    upcoming_events.sort(key=lambda event: event.date)
+
+    past_events.sort(key=lambda event: event.date, reverse=True)
+
+    event = upcoming_events + past_events
+
+    return render_template('afisha.html', event = event, city=city, today=today)
 
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'img')
@@ -327,39 +382,43 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+from datetime import date  # Убедитесь, что это импортировано в начале файла
+
 @app.route("/new_event/<int:city_id>", methods=["POST", "GET"])
 def new_event(city_id):
+    today = date.today()  # Определяем today в начале функции
+    
     if request.method == "POST":
         event_name = request.form['event_name']
         
         date_str = request.form['date']
-        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()  # Переименовал переменную, чтобы не конфликтовало с date из datetime
         link = request.form['link']
 
         photo = None
         if 'image' in request.files:
-                file = request.files['image']
-                if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(file_path)  
-                    photo = filename 
+            file = request.files['image']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)  
+                photo = filename 
 
-        if len(event_name) > 0  and len(link) > 0:
-            
-            new_event = Event(event_name=event_name, photo=photo, date=date, link=link, city_id=city_id)
+        if len(event_name) > 0 and len(link) > 0:
+            new_event = Event(event_name=event_name, photo=photo, date=date_obj, link=link, city_id=city_id)
             db.session.add(new_event)
             db.session.commit()
 
             city = City.query.get(city_id)
-            event = Event.query.all()
-            return render_template('afisha.html', event=event, city=city)
+            event = Event.query.filter_by(city_id=city_id).order_by(Event.date).all()
+            return render_template('afisha.html', event=event, city=city, today=today)
 
         else:
             message = 'Пожалуйста, проверьте введенные данные.'
             message_type = 'danger'
-            return render_template('new_event.html', message=message, message_type=message_type, city_id=city_id)
-    return render_template('new_event.html', city_id=city_id)
+            return render_template('new_event.html', message=message, message_type=message_type, city_id=city_id, today=today)
+        
+    return render_template('new_event.html', city_id=city_id, today=today)
 
 
 @app.route('/add_to_favorites/<int:attraction_id>', methods=['POST'])
@@ -373,6 +432,31 @@ def add_to_favorites(attraction_id):
     new_favorite = Favourite(user_id=current_user.user_id, attraction_id=attraction_id)
     db.session.add(new_favorite)
     db.session.commit()
+
+     # Получаем информацию о достопримечательности
+    attraction = Attraction.query.get(attraction_id)
+    city = City.query.get(attraction.city_id)
+    
+    # Ищем ближайшее мероприятие в этом городе
+    today = date.today()
+    nearest_event = Event.query.filter(
+        Event.city_id == attraction.city_id,
+        Event.date >= today
+    ).order_by(Event.date).first()
+    
+    # Отправляем письмо пользователю
+    if nearest_event:
+        msg = Message("Рекомендуем посетить мероприятие", recipients=[current_user.email])
+        msg.body = f"""
+        Советуем посетить данное мероприятие:
+        
+        Город: {city.city_name}
+        Ближайшее мероприятие: {nearest_event.event_name}
+        Дата: {nearest_event.date.strftime('%d.%m.%Y')}
+        Ссылка: {nearest_event.link}
+        Другие мероприятия Вы можете посмотреть на нашем сайте!
+        """
+        mail.send(msg)
 
     flash("Вы добавили достопримечательность в избранное!", 'success')
     return redirect(url_for('attraction_detail', attraction_id=attraction_id))
@@ -439,7 +523,48 @@ def transliterate(text):
     result = re.sub(r'-+', '-', result)  
     return result.strip('-')  
 
+def calculate_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # Радиус Земли в километрах
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+    lat2 = math.radians(lat2)
+    lon2 = math.radians(lon2)
 
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    distance = R * c
+    return distance 
+
+
+def get_location_from_ip(ip):
+    
+    if ip in ["127.0.0.1", "::1"]:
+        return "Локальный запрос"
+    
+    try:
+        
+        response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,message,country,regionName,city,lat,lon,isp")
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            
+            if data.get('status') == 'success':
+                return {
+                    'city': data.get('city', 'Неизвестно'),
+                    'region': data.get('regionName', 'Неизвестно'),
+                    'country': data.get('country', 'Неизвестно'),
+                    'coordinates': (data.get('lat'), data.get('lon')),
+                    'isp': data.get('isp', 'Неизвестно')
+                }
+            else:
+                return f"Ошибка: {data.get('message', 'Неизвестная ошибка')}"
+    except Exception as e:
+        return f"Ошибка запроса: {str(e)}"
 
 
 if __name__ == '__main__':

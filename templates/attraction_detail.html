@@ -213,4 +213,10 @@
         }, 3000); //3 секунды
     });
 </script>
+<p></p>
+<div class="d-flex justify-content-between align-items-center">
+    <div class="btn-group">
+        <a href="{{ url_for('attractions', city_id=attraction.city_id) }}" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Назад</a>
+    </div>
+</div>
 {% endblock %}

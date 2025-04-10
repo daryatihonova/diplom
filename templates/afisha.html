@@ -1,43 +1,66 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Золотое кольцо России
+    Афиша мероприятий для города {{ city.city_name }}
 {% endblock %}
 
 {% block content %}
+    <h2>Афиши мероприятий для города {{ city.city_name }}</h2>
 
-<h2>Афиши мероприятий для города {{ city.city_name }}</h2>
+    <div class="album py-5 bg-body-tertiary">
+        <div class="container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                {% for el in event %}
+                    <div class="col">
+                        <div class="card shadow-sm">
+                            {% if el.photo %}
+                                <img src="{{ url_for('static', filename='img/' + el.photo) }}" class="card-img-top"
+                                     alt="{{ el.event_name }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/default.png') }}" class="card-img-top"
+                                     alt="{{ el.event_name }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ el.event_name }}</h5>
+                                <p class="card-text">
+                                    {{ el.date.strftime('%d.%m.%Y') }}
+                                    {% if el.date < today %}
+                                        <span class="badge bg-secondary">Завершено</span>
+                                    {% else %}
+                                        {% set days_left = (el.date - today).days %}
+                                        {% if days_left == 0 %}
+                                            <span class="badge bg-success">Сегодня!</span>
+                                        {% elif days_left == 1 %}
+                                            <span class="badge bg-primary">Завтра</span>
+                                        {% else %}
+                                            <span class="badge bg-info">Через {{ days_left }} дней</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </p>
 
-<div class="album py-5 bg-body-tertiary">
-    <div class="container">
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-            {% for el in event %}
-            <div class="col">
-                <div class="card shadow-sm">
-                    {% if el.photo %}
-                    <img src="{{ url_for('static', filename='img/' + el.photo) }}" class="card-img-top" alt="{{ el.event_name }}">
-                    {% else %}
-                    <img src="{{ url_for('static', filename='img/default.png') }}" class="card-img-top" alt="{{ el.event_name }}"> 
-                    {% endif %}
-                    <div class="card-body">
-                        <p class="card-text">{{el.event_name}}</p>
-                        <p class="card-text">{{el.date.strftime('%d - %m - %Y')}}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="btn-group">
-                                <a href="{{ el.link }}" class="btn btn-sm btn-outline-secondary">Подробнее</a>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <a href="{{ el.link }}" class="btn btn-sm btn-outline-secondary">Подробнее</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
-</div>
-{% if current_user.is_authenticated and current_user.email == 'forsitediplom@internet.ru' %}
-<div class="btn-group">
-    <a href="{{ url_for('new_event', city_id=city.city_id) }}" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Добавить мероприятие</a>
-</div>
-{% endif %}
 
+    {% if current_user.is_authenticated and current_user.email == 'forsitediplom@internet.ru' %}
+        <div class="btn-group">
+            <a href="{{ url_for('new_event', city_id=city.city_id) }}"
+               class="btn btn-sm btn-outline-secondary ms-2 mb-2">Добавить мероприятие</a>
+        </div>
+    {% endif %}
+    <p></p>
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="btn-group">
+            <a href="{{ url_for('city_detail', city_id=city.city_id) }}" class="btn btn-sm btn-outline-secondary ms-2 mb-2">Назад</a>
+        </div>
+    </div>
 {% endblock %}
