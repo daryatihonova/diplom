@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Выбор предпочтений
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Выберите интересующие вас типы мероприятий</h2>
+    <form method="POST" action="{{ url_for('save_preferences', city_id=city_id) }}">
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="cinema" name="preferences" value="Кино" {% if 'Кино' in user_preferences %}checked{% endif %}>
+            <label class="form-check-label" for="cinema">Кино</label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="concert" name="preferences" value="Концерты" {% if 'Концерты' in user_preferences %}checked{% endif %}>
+            <label class="form-check-label" for="concert">Концерты</label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="standup" name="preferences" value="Стендап" {% if 'Стендап' in user_preferences %}checked{% endif %}>
+            <label class="form-check-label" for="standup">Стендап</label>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="show" name="preferences" value="Шоу" {% if 'Шоу' in user_preferences %}checked{% endif %}>
+            <label class="form-check-label" for="show">Шоу</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить предпочтения</button>
+        <a href="{{ url_for('afisha', city_id=city_id) }}" class="btn btn-secondary">Отмена</a>
+       
+    </form>
+</div>
+{% endblock %}

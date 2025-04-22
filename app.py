@@ -91,6 +91,12 @@ class Event(db.Model):
     description = db.Column(db.Text, nullable=True)
     link = db.Column(db.String(40), nullable=False)
     city_id = db.Column(db.Integer, db.ForeignKey('city.city_id'), nullable=False)
+    event_type = db.Column(db.String(50), nullable=True)  #тип мероприятия
+
+class UserPreferences(db.Model):
+    preference_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    preference_type = db.Column(db.String(50), nullable=True)     
 
 class Feedback(db.Model):
     feedback_id = db.Column(db.Integer, primary_key=True)
@@ -102,7 +108,11 @@ class Feedback(db.Model):
 @app.context_processor
 def inject_cities():
     cities = City.query.all()
-    return dict(cities=cities)
+    has_preferences = False
+    if current_user.is_authenticated:
+        has_preferences = UserPreferences.query.filter_by(user_id=current_user.user_id).count() > 0
+    city_id = request.view_args.get('city_id', None)
+    return dict(cities=cities, has_preferences=has_preferences, city_id=city_id)
 
 
 @app.route("/")
@@ -134,7 +144,6 @@ def attractions(city_id):
     show_distance = False  
 
     if show_nearby:
-        # Фиксированный IP-адрес 
         user_ip = "94.158.118.147"
         print(f"Используем фиксированный IP-адрес: {user_ip}")
         
@@ -256,7 +265,7 @@ def lk():
     comments_list = []
     for comment in user_comments:
         comments_list.append({
-            'attraction_name': get_attraction_name(comment.attraction_id),  # Функция для получения названия достопримечательности
+            'attraction_name': get_attraction_name(comment.attraction_id),  # Функция для получения названия достопр.
             'text': comment.comment,
            
         })
@@ -284,7 +293,6 @@ def register():
         password = request.form['password']
         password2 = request.form['password2']
 
-         # Проверка на существование пользователя с таким email
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Пользователь с такой электронной почтой уже существует. Вам необходимо войти в свой аккаунт.', 'warning')
@@ -356,22 +364,35 @@ def reset_password(token):
 @app.route("/afisha/<int:city_id>", methods=["POST", "GET"])
 def afisha(city_id):
     city = City.query.get(city_id) 
-    
-    today = date.today() # Сегодняшняя дата
-    
-    all_events = Event.query.filter_by(city_id=city_id).all()
-
+    today = date.today()
+    has_preferences = False
+    if current_user.is_authenticated:
+        has_preferences = UserPreferences.query.filter_by(user_id=current_user.user_id).count() > 0
+        if has_preferences and request.args.get('filter') != 'all':
+            preferences = [pref.preference_type for pref in 
+                         UserPreferences.query.filter_by(user_id=current_user.user_id).all()]
+            all_events = Event.query.filter(
+                Event.city_id == city_id,
+                Event.event_type.in_(preferences)
+            ).all()
+        else:
+            all_events = Event.query.filter_by(city_id=city_id).all()
+    else:
+        all_events = Event.query.filter_by(city_id=city_id).all()
     
     upcoming_events = [event for event in all_events if event.date >= today]
     past_events = [event for event in all_events if event.date < today]
 
     upcoming_events.sort(key=lambda event: event.date)
-
     past_events.sort(key=lambda event: event.date, reverse=True)
 
     event = upcoming_events + past_events
 
-    return render_template('afisha.html', event = event, city=city, today=today)
+    return render_template('afisha.html', 
+                         event=event, 
+                         city=city, 
+                         today=today,
+                         has_preferences=has_preferences)
 
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'img')
@@ -382,18 +403,18 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-from datetime import date  # Убедитесь, что это импортировано в начале файла
+from datetime import date 
 
 @app.route("/new_event/<int:city_id>", methods=["POST", "GET"])
 def new_event(city_id):
-    today = date.today()  # Определяем today в начале функции
+    today = date.today()  
     
     if request.method == "POST":
         event_name = request.form['event_name']
-        
         date_str = request.form['date']
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()  # Переименовал переменную, чтобы не конфликтовало с date из datetime
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()  
         link = request.form['link']
+        event_type = request.form['event_type']
 
         photo = None
         if 'image' in request.files:
@@ -405,12 +426,18 @@ def new_event(city_id):
                 photo = filename 
 
         if len(event_name) > 0 and len(link) > 0:
-            new_event = Event(event_name=event_name, photo=photo, date=date_obj, link=link, city_id=city_id)
+            new_event = Event(event_name=event_name, photo=photo, date=date_obj, link=link, city_id=city_id,event_type=event_type)
             db.session.add(new_event)
             db.session.commit()
 
             city = City.query.get(city_id)
-            event = Event.query.filter_by(city_id=city_id).order_by(Event.date).all()
+            all_events = Event.query.filter_by(city_id=city_id).all()
+            upcoming_events = [event for event in all_events if event.date >= today]
+            past_events = [event for event in all_events if event.date < today]
+            upcoming_events.sort(key=lambda event: event.date)
+            past_events.sort(key=lambda event: event.date, reverse=True)
+            
+            event = upcoming_events + past_events
             return render_template('afisha.html', event=event, city=city, today=today)
 
         else:
@@ -432,12 +459,8 @@ def add_to_favorites(attraction_id):
     new_favorite = Favourite(user_id=current_user.user_id, attraction_id=attraction_id)
     db.session.add(new_favorite)
     db.session.commit()
-
-     # Получаем информацию о достопримечательности
     attraction = Attraction.query.get(attraction_id)
     city = City.query.get(attraction.city_id)
-    
-    # Ищем ближайшее мероприятие в этом городе
     today = date.today()
     nearest_event = Event.query.filter(
         Event.city_id == attraction.city_id,
@@ -463,6 +486,69 @@ def add_to_favorites(attraction_id):
 
 
 
+
+@app.route("/select_preferences/<int:city_id>")
+@login_required
+def select_preferences(city_id):
+    user_preferences = [pref.preference_type for pref in 
+                       UserPreferences.query.filter_by(user_id=current_user.user_id).all()]
+    
+    return render_template('preferences.html', 
+                         user_preferences=user_preferences,
+                         has_preferences=len(user_preferences) > 0,
+                         city_id=city_id)
+
+@app.route("/save_preferences/<int:city_id>", methods=["POST"])
+@login_required
+def save_preferences(city_id):
+    UserPreferences.query.filter_by(user_id=current_user.user_id).delete()
+    preferences = request.form.getlist('preferences')
+    for pref in preferences:
+        new_pref = UserPreferences(user_id=current_user.user_id, preference_type=pref)
+        db.session.add(new_pref)
+    
+    db.session.commit()
+    
+    flash('Ваши предпочтения сохранены! Теперь афиша будет показывать только выбранные типы мероприятий.', 'success')
+    return redirect(url_for('afisha', city_id=city_id))
+
+@app.route("/recommend_events/<int:city_id>")
+@login_required
+def recommend_events(city_id):
+    preferences = [pref.preference_type for pref in 
+                  UserPreferences.query.filter_by(user_id=current_user.user_id).all()]
+    
+    if not preferences:
+        flash('Пожалуйста, сначала выберите предпочтения', 'warning')
+        return redirect(url_for('afisha', city_id=city_id))
+    
+    today = date.today()
+    
+    recommended_events = Event.query.filter(
+        Event.city_id == city_id,
+        Event.event_type.in_(preferences),
+        Event.date >= today
+    ).order_by(Event.date).all()
+    
+    if recommended_events:
+        msg = Message("Рекомендуемые мероприятия", recipients=[current_user.email])
+        msg.body = f"Рекомендуем вам следующие мероприятия в городе {City.query.get(city_id).city_name}:\n\n"
+        
+        for event in recommended_events:
+            msg.body += f"{event.event_name} ({event.event_type})\n"
+            msg.body += f"Дата: {event.date.strftime('%d.%m.%Y')}\n"
+            msg.body += f"Ссылка: {event.link}\n\n"
+        
+        mail.send(msg)
+        flash('Письмо с рекомендациями отправлено на вашу почту!', 'success')
+    else:
+        flash('К сожалению, сейчас нет мероприятий по вашим предпочтениям в этом городе', 'info')
+    
+    return redirect(url_for('afisha', city_id=city_id))
+
+
+
+
 @app.route("/admin_page")
 @login_required
 def admin_page():
@@ -479,7 +565,7 @@ def admin_page():
         Feedback.created_at.label('created_at')
     ).join(User).join(Attraction).join(City).all()
 
-    now = datetime.utcnow()  # Получаем текущее время
+    now = datetime.utcnow()  #текущее время
     return render_template('admin_page.html', all_comments=all_comments, now=now)
 
 
@@ -489,7 +575,7 @@ def admin_page():
 def delete_feedback(feedback_id):
     if current_user.email != 'forsitediplom@internet.ru':
         flash('У вас нет прав для удаления комментариев.', 'danger')
-        return redirect(request.referrer)  # Возвращаем на предыдущую страницу
+        return redirect(request.referrer)
 
     feedback = Feedback.query.get(feedback_id)
     
@@ -504,7 +590,7 @@ def delete_feedback(feedback_id):
     else:
         flash('Комментарий не найден.', 'warning')
 
-    return redirect(request.referrer)  # Возвращаем на предыдущую страницу
+    return redirect(request.referrer) 
 
 
 
@@ -517,14 +603,13 @@ def transliterate(text):
         'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
     }
     
-    # Заменяем буквы и удаляем недопустимые символы
     result = ''.join(translit_dict.get(char, char) for char in text.lower())
     result = re.sub(r'[^a-z0-9-]', '-', result) 
     result = re.sub(r'-+', '-', result)  
     return result.strip('-')  
 
 def calculate_distance(lat1, lon1, lat2, lon2):
-    R = 6371  # Радиус Земли в километрах
+    R = 6371  # Радиус Земли 
     lat1 = math.radians(lat1)
     lon1 = math.radians(lon1)
     lat2 = math.radians(lat2)

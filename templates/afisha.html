@@ -7,6 +7,25 @@
 {% block content %}
     <h2>Афиши мероприятий для города {{ city.city_name }}</h2>
 
+    {% if current_user.is_authenticated %}
+    <div style="display: flex; justify-content: center;">
+        <div style="background-color: #4285F4; border-radius: 8px; padding: 12px 15px; color: white; margin-bottom: 20px; width: 400px;">
+            <p style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">Не пропустите лучшее!</p>
+            <p style="font-size: 14px; margin-bottom: 10px;">Афиша с учётом ваших интересов</p>
+            <a href="{{ url_for('select_preferences', city_id=city.city_id) }}" style="background-color: white; color: #4285F4; text-decoration: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; display: inline-block;">
+                {% if has_preferences %}Изменить предпочтения{% else %}Выбрать события{% endif %}
+            </a>
+            {% if has_preferences %}
+            <a href="{{ url_for('recommend_events', city_id=city.city_id) }}" 
+               style="background-color: #34A853; color: white; text-decoration: none; padding: 6px 10px; border-radius: 4px; font-size: 13px;">
+                Получить на почту
+            </a>
+            {% endif %}
+        </div> 
+    </div>
+   
+    {% endif %}
+    
     <div class="album py-5 bg-body-tertiary">
         <div class="container">
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
