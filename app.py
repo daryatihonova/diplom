@@ -28,9 +28,7 @@ app.config['MAIL_SERVER'] = 'smtp.mail.ru'
 app.config['MAIL_PORT'] = 465 
 app.config['MAIL_USE_TLS'] = False  
 app.config['MAIL_USE_SSL'] = True   
-app.config['MAIL_USERNAME'] = 'forsitediplom@internet.ru'  
-app.config['MAIL_PASSWORD'] = 'e6RrNbjtDrfBCYdtFsLF'  
-app.config['MAIL_DEFAULT_SENDER'] = 'forsitediplom@internet.ru' 
+ 
 
 mail = Mail(app)
 
