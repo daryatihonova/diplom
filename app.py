@@ -1,7 +1,7 @@
 import os
 import re
 import requests
-from flask import Flask, render_template, request, redirect, url_for,  flash, abort
+from flask import Flask, jsonify, render_template, request, redirect, url_for,  flash, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -12,6 +12,9 @@ from datetime import date, datetime, timedelta
 from werkzeug.utils import secure_filename
 import math 
 from sqlalchemy import func  
+import sqlite3
+from flask import g
+from ipaddress import ip_address
 
 
 app = Flask(__name__)
@@ -135,47 +138,53 @@ def attractions(city_id):
         abort(404)
     category_filter = request.args.get('attraction_type')
     show_nearby = request.args.get('show_nearby') == 'true'
-    
+    attractions_query = Attraction.query.filter_by(city_id=city_id)   
     if category_filter and category_filter != "Все":
-        attractions_query = Attraction.query.filter_by(city_id=city_id, attraction_type=category_filter)
-    else:
-        attractions_query = Attraction.query.filter_by(city_id=city_id)
+        attractions_query = attractions_query.filter_by(attraction_type=category_filter)
+    show_distance = False
+    location_info = None  
 
-    show_distance = False  
+    attractions = attractions_query.all()
 
     if show_nearby:
-        user_ip = "94.158.118.147"
-        print(f"Используем фиксированный IP-адрес: {user_ip}")
+
+        user_ip = request.remote_addr
+        
+        if user_ip in ['127.0.0.1', '::1']:
+            user_ip = "94.158.118.147" 
+            print(f"Локальный доступ, используем тестовый IP: {user_ip}")
         
         location_info = get_location_from_ip(user_ip)
 
-        if isinstance(location_info, dict) and 'coordinates' in location_info:
-            user_latitude, user_longitude = location_info['coordinates']
-            
-            attractions = attractions_query.all()
-            for attraction in attractions:
-                attraction.distance = calculate_distance(
-                    user_latitude, user_longitude,
-                    attraction.latitude, attraction.longitude
-                )
-            
-            attractions.sort(key=lambda x: x.distance)
-            attractions = attractions[:5]  # 5 ближайших
-            show_distance = True  
+        if location_info and isinstance(location_info, dict) and 'coordinates' in location_info:
+            try:
+                user_lat, user_lon = location_info['coordinates']
+                print(f"Определено местоположение: {location_info.get('city', 'Неизвестно')}")
+                attractions_with_coords = [
+                    attr for attr in attractions 
+                    if attr.latitude is not None and attr.longitude is not None
+                ]
+                for attr in attractions_with_coords:
+                    attr.distance = calculate_distance(
+                        user_lat, user_lon,
+                        attr.latitude, attr.longitude
+                    )
+                attractions_with_coords.sort(key=lambda x: x.distance)
+                attractions = attractions_with_coords[:5]
+                show_distance = True
+                
+            except (ValueError, TypeError) as e:
+                print(f"Ошибка обработки координат: {e}")
+                flash("Ошибка определения местоположения. Показаны все достопримечательности.", "warning")
         else:
-            flash("Не удалось определить местоположение для фиксированного IP.", "warning")
-            attractions = attractions_query.all()
-    else:
-        attractions = attractions_query.all()
-
-    return render_template('attraction.html', 
-                         attractions=attractions, 
+            error_msg = location_info if isinstance(location_info, str) else "Неизвестная ошибка"
+            print(f"Ошибка определения местоположения: {error_msg}")
+            flash(f"Не удалось определить ваше местоположение. {error_msg}", "warning")
+    return render_template('attraction.html',
+                         attractions=attractions,
                          city=city,
-                         show_distance=show_distance)
-
-
-
-
+                         show_distance=show_distance,
+                         location_info=location_info if show_nearby else None)
 
 @app.route("/attraction_detail/<int:attraction_id>", methods=['POST', 'GET'])
 def attraction_detail(attraction_id):
@@ -624,20 +633,77 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     distance = R * c
     return distance 
 
+@app.route('/get_user_city')
+def get_user_city():
+    user_ip = request.remote_addr
+    
+    if user_ip in ['127.0.0.1', '::1']:
+        user_ip = "94.158.118.147" 
+
+    location_info = get_location_from_ip(user_ip)
+    
+    if isinstance(location_info, dict) and 'city' in location_info:
+        city = City.query.filter(func.lower(City.city_name) == func.lower(location_info['city'])).first()
+        if city:
+            return jsonify({
+                'city': location_info['city'],
+                'city_id': city.city_id
+            })
+    
+    default_city = City.query.first()
+    return jsonify({
+        'city': default_city.city_name if default_city else 'Москва',
+        'city_id': default_city.city_id if default_city else 1
+    })
+
+def get_ip_db():
+    if 'ip_db' not in g:
+        g.ip_db = sqlite3.connect('ipgeo.db')
+        g.ip_db.row_factory = sqlite3.Row  
+    return g.ip_db
+
+@app.teardown_appcontext
+def close_ip_db(e=None):
+    db = g.pop('ip_db', None)
+    if db is not None:
+        db.close()
 
 def get_location_from_ip(ip):
-    
     if ip in ["127.0.0.1", "::1"]:
-        return "Локальный запрос"
+        return {
+            'city': 'Владимир',
+            'region': 'Владимирская область',
+            'country': 'Россия',
+            'coordinates': (56.1445, 40.4172),
+            'isp': 'Локальный доступ'
+        }
     
     try:
+        db = get_ip_db()
+        cursor = db.cursor()
+        ip_num = int(ip_address(ip))
+        
+        cursor.execute('''
+        SELECT city, region, lat, lon 
+        FROM ip_ranges
+        JOIN cities ON ip_ranges.city_id = cities.city_id
+        WHERE ? BETWEEN ip_start AND ip_end
+        LIMIT 1
+        ''', (ip_num,))
+        
+        result = cursor.fetchone()
+        if result:
+            return {
+                'city': result['city'],
+                'region': result['region'],
+                'country': 'Россия',  
+                'coordinates': (result['lat'], result['lon']),
+                'isp': 'Неизвестно'
+            }
         
         response = requests.get(f"http://ip-api.com/json/{ip}?fields=status,message,country,regionName,city,lat,lon,isp")
-        
         if response.status_code == 200:
             data = response.json()
-            
-            
             if data.get('status') == 'success':
                 return {
                     'city': data.get('city', 'Неизвестно'),
@@ -646,11 +712,17 @@ def get_location_from_ip(ip):
                     'coordinates': (data.get('lat'), data.get('lon')),
                     'isp': data.get('isp', 'Неизвестно')
                 }
-            else:
-                return f"Ошибка: {data.get('message', 'Неизвестная ошибка')}"
+            
     except Exception as e:
-        return f"Ошибка запроса: {str(e)}"
-
+        print(f"Ошибка определения местоположения: {str(e)}")
+    
+    return {
+        'city': 'Владимир',
+        'region': 'Владимирская область',
+        'country': 'Россия',
+        'coordinates': (56.1445, 40.4172),
+        'isp': 'Неизвестно'
+    }
 
 if __name__ == '__main__':
     app.run(debug=True)

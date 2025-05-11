@@ -109,5 +109,71 @@
             </div>
         </footer>
     </div>
+
+    {% if request.path == '/' %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!sessionStorage.getItem('userCity')) {
+            fetch('/get_user_city')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.city) {
+                        showCityPrompt(data.city);
+                    }
+                });
+        }
+    });
+    
+    function showCityPrompt(detectedCity) {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '20px';
+        modal.style.right = '20px';
+        modal.style.zIndex = '1000';
+        modal.style.backgroundColor = 'white';
+        modal.style.padding = '20px';
+        modal.style.borderRadius = '8px';
+        modal.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+        modal.style.maxWidth = '300px';
+        
+        modal.innerHTML = `
+            <h5 style="margin-top: 0;">Ваш город: ${detectedCity}?</h5>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button id="confirmCity" style="padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">Да, спасибо</button>
+                <button id="changeCity" style="padding: 5px 10px; background-color: #f44336; color: white; border: none; border-radius: 4px;">Нет, другой</button>
+            </div>
+            <div id="citySelection" style="display: none; margin-top: 15px;">
+                <select id="citySelect" style="width: 100%; padding: 5px;">
+                    {% for city in cities %}
+                    <option value="{{ city.city_id }}">{{ city.city_name }}</option>
+                    {% endfor %}
+                </select>
+                <button id="saveCity" style="margin-top: 10px; padding: 5px 10px; background-color: #2196F3; color: white; border: none; border-radius: 4px;">Сохранить</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        document.getElementById('confirmCity').addEventListener('click', function() {
+            sessionStorage.setItem('userCity', detectedCity);
+            document.body.removeChild(modal);
+        });
+        
+        document.getElementById('changeCity').addEventListener('click', function() {
+            document.getElementById('citySelection').style.display = 'block';
+        });
+        
+        document.getElementById('saveCity').addEventListener('click', function() {
+            const selectedCityId = document.getElementById('citySelect').value;
+            const selectedCityName = document.getElementById('citySelect').options[document.getElementById('citySelect').selectedIndex].text;
+            
+            sessionStorage.setItem('userCity', selectedCityName);
+            sessionStorage.setItem('userCityId', selectedCityId);
+            document.body.removeChild(modal);
+        });
+    }
+    </script>
+    {% endif %}
+
 </body>
 </html>
